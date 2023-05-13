@@ -45,6 +45,111 @@ function main {
 
 # ------------------------------------------------------------------------------
 
+function root_prepare {
+
+    notice "root_prepare"
+
+    if ! whoami | grep -q root; then
+        err 'root required. exit.'
+    fi
+
+    if ! grep -q "nginx" /etc/passwd; then
+        groupadd nginx
+        useradd -M -g nginx nginx
+    fi
+
+    if cat /etc/*release* | grep -q 'openSUSE Leap 15.1'; then
+        warn 'openSUSE Leap 15.1 detected.'
+        zypper in -t pattern -y devel_C_C++ devel_basis devel_perl console
+        zypper in -y pcre-devel libopenssl-devel gd-devel libGeoIP-devel libatomic_ops-devel dialog
+    fi
+
+    if cat /etc/*release* | grep -q 'VERSION="9 (stretch)"'; then
+        warn 'Debian 9 detected.'
+        apt-get install -y vim mc less mlocate git cmake build-essential curl gnupg aptitude
+        apt-get install -y libpq-dev libpcre3-dev zlib1g-dev libgd-dev libgeoip-dev libatomic-ops-dev
+    fi
+
+    if cat /etc/*release* | grep -q 'VERSION="10 (buster)"'; then
+        warn 'Debian 10 detected.'
+        apt-get install -y vim mc less mlocate git cmake build-essential curl gnupg aptitude
+        apt-get install -y libpq-dev libpcre3-dev zlib1g-dev libgd-dev libgeoip-dev libatomic-ops-dev
+
+        if [ -f /usr/bin/gcc-8 ] && [ -f /usr/bin/gcc-7 ] && [ `gcc -dumpversion` -gt 7 ] ; then
+            err 'gcc 7 required. update-alternatives --set gcc /usr/bin/gcc-7 and run builder again.'
+        fi
+
+        if [ -f /usr/bin/gcc-8 ] && [ ! -f /usr/bin/gcc-7 ]; then
+
+            aptitude install -y gcc-7
+
+            if [ -f /usr/bin/gcc-7 ]; then
+
+                update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 10
+                update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 20
+
+                update-alternatives --list gcc
+
+                update-alternatives --set gcc /usr/bin/gcc-7
+                warn 'set after install: update-alternatives --set gcc /usr/bin/gcc-8'
+            fi
+
+            err 'gcc 7 required. run builder again.'
+        fi
+    fi
+
+    if cat /etc/*release* | grep -q 'CentOS Linux release 7'; then
+        warn 'CentOS 7 detected.'
+
+        yum install dnf -y
+        dnf install wget -y
+        dnf groupinstall "Development Tools" -y
+
+        dnf install python2 -y
+        dnf install pcre-devel -y
+        dnf install zlib-devel -y
+        dnf install gd-devel -y
+        dnf install openssl-devel -y
+
+        dnf install epel-release -y
+        dnf install GeoIP-devel -y
+        dnf install libatomic_ops-devel -y
+    fi
+
+    if cat /etc/*release* | grep -q 'CentOS Linux release 8'; then
+        warn 'CentOS 8 detected.'
+
+        dnf groupinstall "Development Tools" -y
+        dnf config-manager --set-enabled PowerTools
+        dnf install python2 -y
+        dnf install pcre-devel -y
+        dnf install zlib-devel -y
+        dnf install gd-devel -y
+        dnf install openssl-devel -y
+
+        dnf install epel-release -y
+        dnf install GeoIP-devel -y
+        dnf install libatomic_ops-devel -y
+
+        ln -s /usr/bin/python2 /usr/bin/python
+    fi
+
+    if [ $IS_LOCAL == 0 ]; then
+        rm -rf /usr/local/$OPRV
+        rm -rf /var/lib/openresty/
+        mkdir -p /var/lib/openresty/{fastcgi,proxy,scgi,tmp,uwsgi,cache}
+        chown -R nginx:nginx /var/lib/openresty/
+
+        mkdir -p /var/run/openresty
+        chown -R nginx:nginx /var/run/openresty
+
+        mkdir /var/log/openresty/
+    fi
+}
+
+
+# ------------------------------------------------------------------------------
+
 
 function opr_src {
 
@@ -147,11 +252,11 @@ function make_configure {
         PID_PATH="/usr/local/$OPRV/nginx/logs/nginx.pid"
         ERROR_LOG="/usr/local/$OPRV/nginx/logs/error.log"
         HTTP_LOG="/usr/local/$OPRV/nginx/logs/access.log"
-        CLIENT_BODY_TEMP="/var/lib/nginx/tmp/"
-        PROXY_TEMP_PATH="/var/lib/nginx/proxy/"
-        FASTCGI_TEMP_PATH="/var/lib/nginx/fastcgi/"
-        UWSGI_TEMP_PATH="/var/lib/nginx/uwsgi/"
-        SCGI_TEMP_PATH="/var/lib/nginx/scgi/"
+        CLIENT_BODY_TEMP="/var/lib/openresty/tmp/"
+        PROXY_TEMP_PATH="/var/lib/openresty/proxy/"
+        FASTCGI_TEMP_PATH="/var/lib/openresty/fastcgi/"
+        UWSGI_TEMP_PATH="/var/lib/openresty/uwsgi/"
+        SCGI_TEMP_PATH="/var/lib/openresty/scgi/"
         LUAJIT2_BUILD_LIB="/opt/lua_src/luajit2.git/build/lib"
         LUAJIT2_SRC="/opt/lua_src/luajit2.git/src"
         #LUA_SSL_NGINX_MODULE="/opt/lua_src/lua-ssl-nginx-module.git/"
