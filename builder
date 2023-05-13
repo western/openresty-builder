@@ -24,7 +24,10 @@ function main {
 
     rm versions
 
-    #root_prepare
+    if whoami | grep -q root; then
+        root_prepare
+    fi
+
     #postgres_get
     #redis_get
 
@@ -58,8 +61,8 @@ function root_prepare {
         useradd -M -g nginx nginx
     fi
 
-    if cat /etc/*release* | grep -q 'openSUSE Leap 15.1'; then
-        warn 'openSUSE Leap 15.1 detected.'
+    if cat /etc/*release* | grep -q 'openSUSE Leap 15.4'; then
+        warn 'openSUSE Leap 15.4 detected.'
         zypper in -t pattern -y devel_C_C++ devel_basis devel_perl console
         zypper in -y pcre-devel libopenssl-devel gd-devel libGeoIP-devel libatomic_ops-devel dialog
     fi
@@ -98,23 +101,7 @@ function root_prepare {
         fi
     fi
 
-    if cat /etc/*release* | grep -q 'CentOS Linux release 7'; then
-        warn 'CentOS 7 detected.'
 
-        yum install dnf -y
-        dnf install wget -y
-        dnf groupinstall "Development Tools" -y
-
-        dnf install python2 -y
-        dnf install pcre-devel -y
-        dnf install zlib-devel -y
-        dnf install gd-devel -y
-        dnf install openssl-devel -y
-
-        dnf install epel-release -y
-        dnf install GeoIP-devel -y
-        dnf install libatomic_ops-devel -y
-    fi
 
     if cat /etc/*release* | grep -q 'CentOS Linux release 8'; then
         warn 'CentOS 8 detected.'
