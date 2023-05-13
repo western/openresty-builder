@@ -144,9 +144,9 @@ function make_configure {
     else
         PREFIX="/usr/local/$OPRV"
         CONF_PATH="/etc/$OPRV/nginx.conf"
-        PID_PATH="/var/run/nginx/nginx.pid"
-        ERROR_LOG="/var/log/nginx/error.log"
-        HTTP_LOG="/var/log/nginx/access.log"
+        PID_PATH="/usr/local/$OPRV/nginx/logs/nginx.pid"
+        ERROR_LOG="/usr/local/$OPRV/nginx/logs/error.log"
+        HTTP_LOG="/usr/local/$OPRV/nginx/logs/access.log"
         CLIENT_BODY_TEMP="/var/lib/nginx/tmp/"
         PROXY_TEMP_PATH="/var/lib/nginx/proxy/"
         FASTCGI_TEMP_PATH="/var/lib/nginx/fastcgi/"
