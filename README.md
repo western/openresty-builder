@@ -21,3 +21,8 @@ IS_GET_ONLY=1|0 - do make and compile after download
 * openresty-1.21.4.1
 * luajit 2.1
 * openssl-3.1.0
+
+## systemd
+
+* cd /usr/lib/systemd/system/
+* wget https://raw.githubusercontent.com/western/openresty-builder/dev/openresty12141.service
