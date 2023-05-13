@@ -25,4 +25,4 @@ IS_GET_ONLY=1|0 - do make and compile after download
 ## systemd
 
 * cd /usr/lib/systemd/system/
-* wget https://raw.githubusercontent.com/western/openresty-builder/dev/openresty12141.service
+* wget https://raw.githubusercontent.com/western/openresty-builder/dev/etc/openresty12141.service
