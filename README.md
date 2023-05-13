@@ -15,3 +15,9 @@ IS_PAUSED=1|0 - program wait for info board
 IS_GET_ONLY=1|0 - do make and compile after download
 ```
 * ./builder
+
+## versions
+
+* openresty-1.21.4.1
+* luajit 2.1
+* openssl-3.1.0
