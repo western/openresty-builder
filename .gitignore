@@ -2,4 +2,5 @@
 /lua_src/
 /ngx_module/
 /opr_src/
+/build/
 versions
