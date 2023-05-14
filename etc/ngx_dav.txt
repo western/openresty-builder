@@ -1,0 +1,19 @@
+
+chown -R nginx:nginx html
+
+# for nginx can read shadow
+usermod -aG shadow nginx
+usermod -aG shadow www-data
+
+
+
+
+location / {
+    auth_pam "PAM Authentication";
+    auth_pam_service_name "nginx";
+}
+
+/etc/pam.d/nginx
+# create new
+auth       include      common-auth
+account    include      common-account
