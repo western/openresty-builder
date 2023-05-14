@@ -32,7 +32,7 @@ function main {
     #redis_get
 
     #etc_src
-    #ngx_module
+    ngx_module
     luajit2_prepare
     #lua_src
     openssl_get
@@ -65,6 +65,7 @@ function root_prepare {
         warn 'openSUSE Leap 15.4 detected.'
         zypper in -t pattern -y devel_C_C++ devel_basis devel_perl console
         zypper in -y pcre-devel libopenssl-devel gd-devel libGeoIP-devel libatomic_ops-devel dialog
+        zypper in -y libxslt-devel libxml2-devel
     fi
 
     if cat /etc/*release* | grep -q 'VERSION="9 (stretch)"'; then
@@ -150,6 +151,23 @@ function opr_src {
     mkdir opr_src ; cd opr_src
 
     get_arch "https://openresty.org/download/$OPRV.tar.gz" "$OPRV.tar.gz" $OPRV
+
+    cd $PARENTF
+}
+
+# ------------------------------------------------------------------------------
+
+
+
+function ngx_module {
+
+    notice "ngx_module"
+
+    mkdir ngx_module ; cd ngx_module
+
+    get_github 'arut' 'nginx-dav-ext-module.git'
+    get_github 'sto' 'ngx_http_auth_pam_module.git'
+
 
     cd $PARENTF
 }
@@ -297,6 +315,9 @@ cat << L10HEREDOC > opr_src/$OPRV/nginx_configuration
 --with-http_random_index_module \\
 --with-http_secure_link_module \\
 --with-http_stub_status_module \\
+--with-http_dav_module \\
+--add-module=../../ngx_module/nginx-dav-ext-module.git/ \\
+--add-module=../../ngx_module/ngx_http_auth_pam_module.git/ \\
 --with-pcre \\
 --with-pcre-jit \\
 --with-libatomic \\
