@@ -22,6 +22,11 @@ IS_GET_ONLY=1|0 - do make and compile after download
 * luajit 2.1
 * openssl-3.1.0
 
+## nginx modules
+
+* https://github.com/arut/nginx-dav-ext-module.git
+* https://github.com/sto/ngx_http_auth_pam_module.git
+
 ## systemd
 
 * cd /usr/lib/systemd/system/
