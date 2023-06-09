@@ -105,7 +105,7 @@ function root_prepare {
     if cat /etc/*release* | grep -q 'VERSION="11 (bullseye)"'; then
         warn 'Debian 11 detected.'
         apt-get install -y vim mc less mlocate git cmake build-essential curl gnupg aptitude
-        apt-get install -y libpq-dev libpcre3-dev zlib1g-dev libgd-dev libgeoip-dev libatomic-ops-dev
+        apt-get install -y libpq-dev libpcre3-dev zlib1g-dev libgd-dev libgeoip-dev libatomic-ops-dev libxslt-dev
     fi
 
 
