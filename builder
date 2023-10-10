@@ -7,7 +7,7 @@ CPUC=`cat /proc/cpuinfo | grep processor | wc -l`
 CPUC=$((CPUC-1))
 PARENTF=`pwd`
 BUILDF="$PARENTF/build"
-OPRV='openresty-1.21.4.1'
+OPRV='openresty-1.21.4.2'
 IS_LOCAL=1
 IS_PAUSED=0
 IS_GET_ONLY=1
@@ -59,6 +59,13 @@ function root_prepare {
     if ! grep -q "nginx" /etc/passwd; then
         groupadd nginx
         useradd -M -g nginx nginx
+    fi
+
+    if cat /etc/*release* | grep -q 'openSUSE Leap 15.5'; then
+        warn 'openSUSE Leap 15.5 detected.'
+        zypper in -t pattern -y devel_C_C++ devel_basis devel_perl console
+        zypper in -y pcre-devel libopenssl-devel gd-devel libGeoIP-devel libatomic_ops-devel dialog
+        zypper in -y libxslt-devel libxml2-devel
     fi
 
     if cat /etc/*release* | grep -q 'openSUSE Leap 15.4'; then
@@ -214,7 +221,7 @@ function openssl_get {
 
 
     #get_arch 'https://github.com/openssl/openssl/archive/OpenSSL_1_1_1g.tar.gz' 'OpenSSL_1_1_1g.tar.gz' 'openssl-OpenSSL_1_1_1g'
-    get_arch 'https://github.com/openssl/openssl/releases/download/openssl-3.1.0/openssl-3.1.0.tar.gz' 'openssl-3.1.0.tar.gz' 'openssl-3.1.0'
+    get_arch 'https://github.com/openssl/openssl/releases/download/openssl-3.1.3/openssl-3.1.3.tar.gz' 'openssl-3.1.3.tar.gz' 'openssl-3.1.3'
 
 
     cd $PARENTF
