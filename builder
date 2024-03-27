@@ -7,7 +7,7 @@ CPUC=`cat /proc/cpuinfo | grep processor | wc -l`
 CPUC=$((CPUC-1))
 PARENTF=`pwd`
 BUILDF="$PARENTF/build"
-OPRV='openresty-1.21.4.2'
+OPRV='openresty-1.25.3.1'
 IS_LOCAL=1
 IS_PAUSED=0
 IS_GET_ONLY=1
@@ -28,8 +28,7 @@ function main {
         root_prepare
     fi
 
-    #postgres_get
-    #redis_get
+
 
     #etc_src
     ngx_module
@@ -40,7 +39,6 @@ function main {
     make_configure
 
     #make_nginx_service
-    #make_postgres_service
     #make_nginx_tmpfile
 
     #prepare_for_archive
@@ -174,6 +172,7 @@ function ngx_module {
 
     get_github 'arut' 'nginx-dav-ext-module.git'
     get_github 'sto' 'ngx_http_auth_pam_module.git'
+    get_github 'nginxinc' 'nginx-otel.git'
 
 
     cd $PARENTF
@@ -221,7 +220,7 @@ function openssl_get {
 
 
     #get_arch 'https://github.com/openssl/openssl/archive/OpenSSL_1_1_1g.tar.gz' 'OpenSSL_1_1_1g.tar.gz' 'openssl-OpenSSL_1_1_1g'
-    get_arch 'https://github.com/openssl/openssl/releases/download/openssl-3.1.3/openssl-3.1.3.tar.gz' 'openssl-3.1.3.tar.gz' 'openssl-3.1.3'
+    get_arch 'https://github.com/openssl/openssl/releases/download/openssl-3.2.1/openssl-3.2.1.tar.gz' 'openssl-3.2.1.tar.gz' 'openssl-3.2.1'
 
 
     cd $PARENTF
@@ -280,84 +279,71 @@ function make_configure {
     fi
 
     WITH_OPENSSL=""
-    if [ -d $PARENTF/etc_src/openssl-3.1.0 ]; then
-        WITH_OPENSSL="--with-openssl=$PARENTF/etc_src/openssl-3.1.0 --with-openssl-opt='enable-tls1_3'"
+    if [ -d $PARENTF/etc_src/openssl-3.2.1 ]; then
+        WITH_OPENSSL="--with-openssl=$PARENTF/etc_src/openssl-3.2.1 --with-openssl-opt='enable-tls1_3'"
     fi
 
 
-cat << L10HEREDOC > opr_src/$OPRV/nginx_configuration
-#!/bin/bash
-
-./configure \\
---with-cc-opt="-Wno-sign-compare -Wno-string-plus-int -Wno-deprecated-declarations -Wno-unused-parameter -Wno-unused-const-variable -Wno-conditional-uninitialized -Wno-mismatched-tags -Wno-sometimes-uninitialized -Wno-parentheses-equality -Wno-tautological-compare -Wno-self-assign -Wno-deprecated-register -Wno-deprecated -Wno-invalid-source-encoding -Wno-pointer-sign -Wno-parentheses -Wno-enum-conversion -Wno-c++11-compat-deprecated-writable-strings -Wno-write-strings" \\
---with-ld-opt="-Wl,-rpath,$LUAJIT2_BUILD_LIB" \\
---prefix=$PREFIX \\
---conf-path=$CONF_PATH \\
---pid-path=$PID_PATH \\
---error-log-path=$ERROR_LOG \\
---http-log-path=$HTTP_LOG \\
---http-client-body-temp-path=$CLIENT_BODY_TEMP \\
---http-proxy-temp-path=$PROXY_TEMP_PATH \\
---http-fastcgi-temp-path=$FASTCGI_TEMP_PATH \\
---http-uwsgi-temp-path=$UWSGI_TEMP_PATH \\
---http-scgi-temp-path=$SCGI_TEMP_PATH \\
---user=nginx \\
---group=nginx \\
---with-debug \\
---with-stream \\
---with-stream_ssl_module \\
---with-stream_ssl_preread_module \\
---with-threads \\
---with-file-aio \\
---with-http_ssl_module $WITH_OPENSSL \\
---with-http_v2_module \\
---with-http_realip_module \\
---with-http_addition_module \\
---with-http_image_filter_module \\
---with-http_geoip_module \\
---with-http_sub_module \\
---with-http_mp4_module \\
---with-http_gunzip_module \\
---with-http_gzip_static_module \\
---with-http_random_index_module \\
---with-http_secure_link_module \\
---with-http_stub_status_module \\
---with-http_dav_module \\
---add-module=../../ngx_module/nginx-dav-ext-module.git/ \\
---add-module=../../ngx_module/ngx_http_auth_pam_module.git/ \\
---with-pcre \\
---with-pcre-jit \\
---with-libatomic \\
 
 
-L10HEREDOC
+    warn "export LUAJIT_LIB=$LUAJIT2_BUILD_LIB && export LUAJIT_INC=$LUAJIT2_SRC"
+    export LUAJIT_LIB=$LUAJIT2_BUILD_LIB && export LUAJIT_INC=$LUAJIT2_SRC
 
-    chmod +x "opr_src/$OPRV/nginx_configuration"
+    pushd opr_src/$OPRV
 
-    notice "export these environment:"
-    #echo "unset LUAJIT_LIB && unset LUAJIT_INC"
-    #echo "unset SREGEX_LIB && unset SREGEX_INC"
-    #echo "unset LIBDRIZZLE_INC && unset LIBDRIZZLE_LIB"
-    #echo "unset MODSECURITY_INC && unset MODSECURITY_LIB"
-    echo
-    echo "export LUAJIT_LIB=$LUAJIT2_BUILD_LIB && export LUAJIT_INC=$LUAJIT2_SRC"
+/usr/bin/perl configure \
+-j4 \
+--with-ld-opt="-Wl,-rpath,$LUAJIT2_BUILD_LIB" \
+--prefix=$PREFIX \
+--conf-path=$CONF_PATH \
+--pid-path=$PID_PATH \
+--error-log-path=$ERROR_LOG \
+--http-log-path=$HTTP_LOG \
+--http-client-body-temp-path=$CLIENT_BODY_TEMP \
+--http-proxy-temp-path=$PROXY_TEMP_PATH \
+--http-fastcgi-temp-path=$FASTCGI_TEMP_PATH \
+--http-uwsgi-temp-path=$UWSGI_TEMP_PATH \
+--http-scgi-temp-path=$SCGI_TEMP_PATH \
+--user=nginx \
+--group=nginx \
+--with-debug \
+--with-stream \
+--with-stream_ssl_module \
+--with-stream_ssl_preread_module \
+--with-threads \
+--with-file-aio \
+--with-http_ssl_module $WITH_OPENSSL \
+--with-http_v2_module \
+--with-http_v3_module \
+--with-http_realip_module \
+--with-http_addition_module \
+--with-http_image_filter_module \
+--with-http_geoip_module \
+--with-http_sub_module \
+--with-http_mp4_module \
+--with-http_gunzip_module \
+--with-http_gzip_static_module \
+--with-http_random_index_module \
+--with-http_secure_link_module \
+--with-http_stub_status_module \
+--with-http_dav_module \
+--add-module=../../ngx_module/nginx-dav-ext-module.git/ \
+--add-module=../../ngx_module/ngx_http_auth_pam_module.git/ \
+--with-pcre \
+--with-pcre-jit \
+--with-libatomic \
 
-    #if [ $IS_LOCAL == 1 ]; then
-        #echo "export SREGEX_LIB=$PARENTF/etc_src/sregex.git/build/lib && export SREGEX_INC=$PARENTF/etc_src/sregex.git/src"
-        #echo "export LIBDRIZZLE_INC=$PARENTF/etc_src/drizzle7-2011.07.21/build/include/libdrizzle-1.0 && export LIBDRIZZLE_LIB=$PARENTF/etc_src/drizzle7-2011.07.21/build/lib64/"
-        #echo "export MODSECURITY_INC=$BUILDF/modsecurity/include/"
-        #echo "export MODSECURITY_LIB=$BUILDF/modsecurity/lib64/"
-    #fi
-    echo
 
-    notice 'run ./nginx_configuration'
-    notice 'gmake install -j4'
 
-    if [ $IS_PAUSED == 1 ]; then
-        read -p "Press [Enter] key to continue..."
-    fi
+    gmake install -j4
 
-    cd opr_src/$OPRV && exec bash
+
+    popd
+
+
+
+
+
 }
 
 
