@@ -18,9 +18,9 @@ IS_GET_ONLY=1|0 - do make and compile after download
 
 ## versions
 
-* openresty-1.21.4.1
+* openresty-1.25.3.1
 * luajit 2.1
-* openssl-3.1.0
+* openssl-3.2.1
 
 ## nginx modules
 
